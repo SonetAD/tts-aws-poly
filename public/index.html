@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Amazon Polly Text to Speech</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./main.css" />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 id="mainHead" class="mb-4 text-center">Amazon Polly Text to Speech</h1>
+      <form id="speechForm" class="mb-4">
+        <div class="mb-3">
+          <label for="text" class="form-label">Enter text:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="text"
+            name="text"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="voiceId" class="form-label">Select voice:</label>
+          <select id="voiceId" name="voiceId" class="form-select">
+            <!-- Options will be populated here -->
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Speak</button>
+      </form>
+      <div id="audioPlayer"></div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        const voicesResponse = await fetch('/voices');
+        const voices = await voicesResponse.json();
+        const voiceDropdown = document.getElementById('voiceId');
+
+        // Manually select a subset of high-quality voices
+        const bestVoices = [
+          { Id: 'Joanna', Name: 'Joanna', LanguageCode: 'en-US' },
+          { Id: 'Salli', Name: 'Salli', LanguageCode: 'en-US' },
+          { Id: 'Emma', Name: 'Emma', LanguageCode: 'en-US' },
+          { Id: 'Aditi', Name: 'Aditi', LanguageCode: 'en-IN' },
+          { Id: 'Vitoria', Name: 'Vitoria', LanguageCode: 'pt-BR' },
+          // Add more voices as needed
+        ];
+
+        // Filter the fetched voices to match the bestVoices array
+        const filteredVoices = voices.filter((voice) =>
+          bestVoices.some((bestVoice) => bestVoice.Id === voice.Id)
+        );
+
+        filteredVoices.forEach((voice) => {
+          const option = document.createElement('option');
+          option.value = voice.Id;
+          option.textContent = `${voice.Name} (${voice.LanguageCode})`;
+          voiceDropdown.appendChild(option);
+        });
+      });
+    </script>
+
+    <script>
+      document
+        .getElementById('speechForm')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const text = document.getElementById('text').value;
+          const voiceId = document.getElementById('voiceId').value;
+          const response = await fetch(
+            `/synthesize?text=${encodeURIComponent(text)}&voiceId=${voiceId}`
+          );
+          const player = document.getElementById('audioPlayer');
+          player.innerHTML = await response.text();
+        });
+    </script>
+  </body>
+</html>
